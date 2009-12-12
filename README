@@ -1,0 +1,12 @@
+Simple blocks for adding in your templates
+
+Features:
+- Accept variables and constant as keys
+- Uses cache 
+- Allows blocks per site
+
+Usage:
+
+{% get_block KEY %}
+
+KEY can be a variable or a string
