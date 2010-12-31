@@ -1,29 +1,19 @@
 from django import template
 from django.core.cache import cache
-from django.conf import settings
 from django.contrib.sites.models import Site
 
-from simpleblocks import defaults
 from simpleblocks.models import SimpleBlock
+from simpleblocks.utils import get_cache_key, get_setting
 
-register = template.Library()        
+register = template.Library()
 
-def get_setting(setting_key):
-    prefix = 'SIMPLEBLOCKS_'
-    if hasattr(settings, '%s%s' % (prefix, setting_key)):
-        return getattr(settings, '%s%s' % (prefix, setting_key))
-    else:
-        return getattr(defaults, '%s%s' % (prefix, setting_key))
 
 def get_simple_block(parser, token):
     """
     Returns a block according to the key
     Blocks must be unique for site / language
-    USAGE:
-    
-    {% get_block KEY %}
-
-    KEY can be a variable or a string
+    ``{% get_block KEY %}``
+    Where ``KEY`` can be a variable or a string
     """
     bits = token.contents.split()
     if len(bits) != 2:
@@ -39,20 +29,17 @@ class SimpleBlockNode(template.Node):
     def render(self, context):
         key = self.key.resolve(context, True)
         site = Site.objects.get_current()
-        cache_key = '%s%s%s' % (get_setting('PREFIX'),
-                                site.domain,
-                                key)
-        cached_key = cache.get(cache_key)
-        if cached_key:
-            return cached_key
-        else:
-            try:
-                sblock = SimpleBlock.objects.get(site=site,
-                                                 key=key)                
-            except SimpleBlock.DoesNotExist:
-                return ''
-            cache.set(key, sblock.body, get_setting('TIMEOUT'))
-            return sblock.body
-        return ''
+        # figure out the key
+        cache_key = get_cache_key(key, site)
+        cached_content = cache.get(cache_key)
+        if cached_content:
+            return cached_content
+        try:
+            sblock = SimpleBlock.objects.get(site=site,
+                                             key=key)
+        except SimpleBlock.DoesNotExist:
+            return ''
+        cache.set(key, sblock.body, get_setting('TIMEOUT'))
+        return sblock.body
 
 register.tag('get_block', get_simple_block)

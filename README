@@ -1,12 +1,19 @@
-Simple blocks for adding in your templates
+App for adding blocks of text to your templates.
+
+It takes into consideration the site.
 
 Features:
-- Accept variables and constant as keys
-- Uses cache 
-- Allows blocks per site
+- Accept variables and constants as keys for the block
+- Unique blocks per site
+- Uses cache
+
 
 Usage:
 
 {% get_block KEY %}
 
-KEY can be a variable or a string
+Where ``KEY`` can be a variable or a string
+
+TODO:
+- Better docs
+- Test cache
